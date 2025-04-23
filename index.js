@@ -14,8 +14,8 @@ app.use(logger);
 
 // 配置微信参数
 const WECHAT_CONFIG = {
-  appid: "wx9cac1c0a47db87e9", // 建议使用环境变量
-  secret: "5d2d7e118bbde6aed3d13cc167eac672",
+  appid: process.env.WECHAT_APPID, // 建议使用环境变量
+  secret: process.env.WECHAT_SECRET,
 };
 
 // 首页
