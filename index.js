@@ -32,31 +32,6 @@ app.get("/", async (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// // 更新计数
-// app.post("/api/count", async (req, res) => {
-//   const { action } = req.body;
-//   if (action === "inc") {
-//     await Counter.create();
-//   } else if (action === "clear") {
-//     await Counter.destroy({
-//       truncate: true,
-//     });
-//   }
-//   res.send({
-//     code: 0,
-//     data: await Counter.count(),
-//   });
-// });
-
-// // 获取计数
-// app.get("/api/count", async (req, res) => {
-//   const result = await Counter.count();
-//   res.send({
-//     code: 0,
-//     data: result,
-//   });
-// });
-
 // 小程序调用，获取微信 Open ID
 app.get("/api/wx_openid", async (req, res) => {
   if (req.headers["x-wx-source"]) {
@@ -108,7 +83,7 @@ app.get("/api/wx/datacube", async (req, res) => {
   }
 });
 
-// 修改为 POST 请求，并使用 multer 处理文件上传
+// 上传图片到微信公众号素材箱
 app.post("/api/wx/uploadimg", upload.single("media"), async (req, res) => {
   try {
     if (!req.file) {
@@ -159,6 +134,7 @@ app.post("/api/wx/uploadimg", upload.single("media"), async (req, res) => {
   }
 });
 
+// 删除素材
 app.get("/api/wx/delMaterial", async (req, res) => {
   const media_id = req.query.media_id;
 
@@ -172,6 +148,7 @@ app.get("/api/wx/delMaterial", async (req, res) => {
   res.send(response.data);
 });
 
+// 获取素材列表
 app.get("/api/wx/getMaterial", async (req, res) => {
   try {
     const type = req.query.type || "image";
@@ -187,6 +164,114 @@ app.get("/api/wx/getMaterial", async (req, res) => {
       }
     );
     res.send(response.data);
+  } catch (error) {
+    res.status(500).send({
+      code: -1,
+      error: error.message,
+    });
+  }
+});
+
+// 新建草稿
+app.post("/api/wx/draft/add", async (req, res) => {
+  try {
+    const { articles } = req.body;
+    const response = await axios.post(
+      `https://api.weixin.qq.com/cgi-bin/draft/add`,
+      {
+        articles,
+      }
+    );
+    res.send({
+      code: 0,
+      data: response.data,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: -1,
+      error: error.message,
+    });
+  }
+});
+
+// 获取草稿
+app.get("/api/wx/draft/get", async (req, res) => {
+  try {
+    const { media_id } = req.query;
+    const response = await axios.post(
+      `https://api.weixin.qq.com/cgi-bin/draft/get`,
+      {
+        media_id,
+      }
+    );
+    res.send({
+      code: 0,
+      data: response.data,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: -1,
+      error: error.message,
+    });
+  }
+});
+
+// 删除草稿
+app.post("/api/wx/draft/delete", async (req, res) => {
+  try {
+    const { media_id } = req.body;
+    const response = await axios.post(
+      `https://api.weixin.qq.com/cgi-bin/draft/delete`,
+      {
+        media_id,
+      }
+    );
+    res.send({
+      code: 0,
+      data: response.data,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: -1,
+      error: error.message,
+    });
+  }
+});
+
+// 获取草稿总数
+app.get("/api/wx/draft/count", async (req, res) => {
+  try {
+    const response = await axios.get(
+      `https://api.weixin.qq.com/cgi-bin/draft/count`
+    );
+    res.send({
+      code: 0,
+      data: response.data,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: -1,
+      error: error.message,
+    });
+  }
+});
+
+// 获取草稿列表
+app.get("/api/wx/draft/batchget", async (req, res) => {
+  try {
+    const { offset = 0, count = 20, no_content = 0 } = req.query;
+    const response = await axios.post(
+      `https://api.weixin.qq.com/cgi-bin/draft/batchget`,
+      {
+        offset: parseInt(offset),
+        count: parseInt(count),
+        no_content: parseInt(no_content),
+      }
+    );
+    res.send({
+      code: 0,
+      data: response.data,
+    });
   } catch (error) {
     res.status(500).send({
       code: -1,
