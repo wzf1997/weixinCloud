@@ -122,7 +122,7 @@ app.post("/api/wx/uploadimg", upload.single("media"), async (req, res) => {
     formData.append("media", fs.createReadStream(req.file.path));
 
     const response = await axios.post(
-      `https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=${req.query.access_token}`,
+      `https://api.weixin.qq.com/cgi-bin/media/uploadimg`,
       formData,
       {
         headers: {
