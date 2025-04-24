@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const axios = require("axios");
+const multer = require("multer");
 
 const fs = require("fs");
 
@@ -17,6 +18,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 app.use(logger);
+
+const upload = multer({ dest: "uploads/" }); // 配置上传临时目录
 
 // 配置微信参数
 const WECHAT_CONFIG = {
@@ -105,23 +108,47 @@ app.get("/api/wx/datacube", async (req, res) => {
   }
 });
 
-app.get("/api/wx/uploadimg", async (req, res) => {
-  const formData = new FormData();
-  formData.append(
-    "media",
-    fs.createReadStream(path.join(__dirname, "test.png"))
-  );
-  const response = await axios.post(
-    `https://api.weixin.qq.com/cgi-bin/media/uploadimg`,
-    formData,
-    {
-      headers: {
-        ...formData.getHeaders(),
-        "Content-Type": "multipart/form-data",
-      },
+// 修改为 POST 请求，并使用 multer 处理文件上传
+app.post("/api/wx/uploadimg", upload.single("media"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send({
+        code: -1,
+        error: "请上传文件",
+      });
     }
-  );
-  res.send(response.data);
+
+    const formData = new FormData();
+    formData.append("media", fs.createReadStream(req.file.path));
+
+    const response = await axios.post(
+      `https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=${req.query.access_token}`,
+      formData,
+      {
+        headers: {
+          ...formData.getHeaders(),
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    // 删除临时文件
+    fs.unlinkSync(req.file.path);
+
+    res.send({
+      code: 0,
+      data: response.data,
+    });
+  } catch (error) {
+    // 确保清理临时文件
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).send({
+      code: -1,
+      error: error.message,
+    });
+  }
 });
 
 const port = process.env.PORT || 80;
