@@ -118,8 +118,16 @@ app.post("/api/wx/uploadimg", upload.single("media"), async (req, res) => {
       });
     }
 
+    console.log(req.file);
+
     const formData = new FormData();
-    formData.append("media", fs.createReadStream(req.file.path));
+
+    formData.append("media", fs.createReadStream(req.file.path), {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype,
+    });
+
+    console.log(formData);
 
     const response = await axios.post(
       `https://api.weixin.qq.com/cgi-bin/media/uploadimg`,
@@ -144,6 +152,42 @@ app.post("/api/wx/uploadimg", upload.single("media"), async (req, res) => {
     if (req.file) {
       fs.unlinkSync(req.file.path);
     }
+    res.status(500).send({
+      code: -1,
+      error: error.message,
+    });
+  }
+});
+
+app.get("/api/wx/delMaterial", async (req, res) => {
+  const media_id = req.query.media_id;
+
+  const response = await axios.post(
+    `https://api.weixin.qq.com/cgi-bin/material/del_material`,
+
+    {
+      media_id: media_id,
+    }
+  );
+  res.send(response.data);
+});
+
+app.get("/api/wx/getMaterial", async (req, res) => {
+  try {
+    const type = req.query.type || "image";
+    const offset = req.query.offset || 0;
+    const count = req.query.count || 20;
+
+    const response = await axios.post(
+      `https://api.weixin.qq.com/cgi-bin/material/batchget_material`,
+      {
+        type: type,
+        offset: offset,
+        count: count,
+      }
+    );
+    res.send(response.data);
+  } catch (error) {
     res.status(500).send({
       code: -1,
       error: error.message,
