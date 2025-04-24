@@ -83,6 +83,17 @@ app.get("/api/wx/token", async (req, res) => {
   }
 });
 
+app.get("/api/wx/datacube", async (req, res) => {
+  const response = await axios.post(
+    `https://api.weixin.qq.com/cgi-bin/datacube/getarticlesummary`,
+    {
+      begin_date: "2025-04-01",
+      end_date: "2025-04-24",
+    }
+  );
+  res.send(response.data);
+});
+
 const port = process.env.PORT || 80;
 
 async function bootstrap() {
