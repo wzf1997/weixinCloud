@@ -4,6 +4,8 @@ const cors = require("cors");
 const morgan = require("morgan");
 const axios = require("axios");
 
+const FormData = require("form-data");
+
 // const { init: initDB, Counter } = require("./db");
 
 const logger = morgan("tiny");
@@ -99,6 +101,21 @@ app.get("/api/wx/datacube", async (req, res) => {
       error: error.message,
     });
   }
+});
+
+app.get("/api/wx/uploadimg", async (req, res) => {
+  const formData = new FormData();
+  formData.append(
+    "media",
+    fs.createReadStream(path.join(__dirname, "test.png"))
+  );
+  const response = await axios.post(
+    `https://api.weixin.qq.com/cgi-bin/media/uploadimg`,
+    {
+      media: formData,
+    }
+  );
+  res.send(response.data);
 });
 
 const port = process.env.PORT || 80;
