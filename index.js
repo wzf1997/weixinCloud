@@ -134,6 +134,57 @@ app.post("/api/wx/uploadimg", upload.single("media"), async (req, res) => {
   }
 });
 
+// 上传图片到微信公众号素材箱
+app.post("/api/wx/addMaterial", upload.single("media"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send({
+        code: -1,
+        error: "请上传文件",
+      });
+    }
+
+    console.log(req.file);
+
+    const formData = new FormData();
+
+    formData.append("media", fs.createReadStream(req.file.path), {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype,
+    });
+
+    console.log(formData);
+
+    const response = await axios.post(
+      `https://api.weixin.qq.com/cgi-bin/material/add_material?type=image`,
+      formData,
+      {
+        headers: {
+          ...formData.getHeaders(),
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    // 删除临时文件
+    fs.unlinkSync(req.file.path);
+
+    res.send({
+      code: 0,
+      data: response.data,
+    });
+  } catch (error) {
+    // 确保清理临时文件
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).send({
+      code: -1,
+      error: error.message,
+    });
+  }
+});
+
 // 删除素材
 app.get("/api/wx/delMaterial", async (req, res) => {
   const media_id = req.query.media_id;
