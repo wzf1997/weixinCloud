@@ -113,8 +113,12 @@ app.get("/api/wx/uploadimg", async (req, res) => {
   );
   const response = await axios.post(
     `https://api.weixin.qq.com/cgi-bin/media/uploadimg`,
+    formData,
     {
-      media: formData,
+      headers: {
+        ...formData.getHeaders(),
+        "Content-Type": "multipart/form-data",
+      },
     }
   );
   res.send(response.data);
