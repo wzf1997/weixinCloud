@@ -9,8 +9,6 @@ const fs = require("fs");
 
 const FormData = require("form-data");
 
-// const { init: initDB, Counter } = require("./db");
-
 const logger = morgan("tiny");
 
 const app = express();
@@ -144,16 +142,12 @@ app.post("/api/wx/addMaterial", upload.single("media"), async (req, res) => {
       });
     }
 
-    console.log(req.file);
-
     const formData = new FormData();
 
     formData.append("media", fs.createReadStream(req.file.path), {
       filename: req.file.originalname,
       contentType: req.file.mimetype,
     });
-
-    console.log(formData);
 
     const response = await axios.post(
       `https://api.weixin.qq.com/cgi-bin/material/add_material?type=image`,
@@ -317,6 +311,28 @@ app.get("/api/wx/draft/batchget", async (req, res) => {
         offset: parseInt(offset),
         count: parseInt(count),
         no_content: parseInt(no_content),
+      }
+    );
+    res.send({
+      code: 0,
+      data: response.data,
+    });
+  } catch (error) {
+    res.status(500).send({
+      code: -1,
+      error: error.message,
+    });
+  }
+});
+
+// 发布草稿
+app.post("/api/wx/draft/publish", async (req, res) => {
+  try {
+    const { media_id } = req.body;
+    const response = await axios.post(
+      `https://api.weixin.qq.com/cgi-bin/freepublish/submit`,
+      {
+        media_id,
       }
     );
     res.send({
