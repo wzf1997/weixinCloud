@@ -222,10 +222,6 @@ app.post("/api/wx/draft/add", async (req, res) => {
   try {
     const { articles } = req.body;
 
-    articles.forEach((article) => {
-      article.content = JSON.parse(JSON.stringify(article.content));
-    });
-
     const response = await axios.post(
       `https://api.weixin.qq.com/cgi-bin/draft/add`,
       {
