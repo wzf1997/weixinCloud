@@ -223,7 +223,7 @@ app.post("/api/wx/draft/add", async (req, res) => {
     const { articles } = req.body;
 
     articles.forEach((article) => {
-      article.content = JSON.parse(article.content);
+      article.content = JSON.parse(JSON.stringify(article.content));
     });
 
     const response = await axios.post(
